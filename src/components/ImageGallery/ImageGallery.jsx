@@ -1,52 +1,47 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { ImageGalleryItem } from "components/ImageGalleryItem";
 import { List } from "./ImageGallery.styled";
 import { Modal } from "components/Modal";
 import "react-toastify/dist/ReactToastify.min.css";
 
-class ImageGallery extends Component {
-  state = {
-    modalOpen: false,
-    bigImg: null,
-  };
+const ImageGallery = ({ images }) => {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [bigImg, setBigImg] = useState(null);
 
-  openModal = (e) => {
+  const openModal = (e) => {
     const bigImg = e.currentTarget.getAttribute("data-big-img");
-    this.setState({ modalOpen: true, bigImg });
+
+    setModalOpen(true);
+    setBigImg(bigImg);
   };
 
-  closeModal = () => {
-    this.setState({ modalOpen: false });
+  const closeModal = () => {
+    setModalOpen(false);
   };
 
-  render() {
-    const { modalOpen, bigImg } = this.state;
-    const { images } = this.props;
+  return (
+    <div>
+      {images.length !== 0 && (
+        <>
+          <List>
+            {images.map((image) => {
+              return (
+                <ImageGalleryItem
+                  key={image.id}
+                  image={image}
+                  openModal={openModal}
+                />
+              );
+            })}
+          </List>
+        </>
+      )}
 
-    return (
-      <div>
-        {images.length !== 0 && (
-          <>
-            <List>
-              {images.map((image) => {
-                return (
-                  <ImageGalleryItem
-                    key={image.id}
-                    image={image}
-                    openModal={this.openModal}
-                  />
-                );
-              })}
-            </List>
-          </>
-        )}
-
-        {modalOpen && <Modal bigImg={bigImg} closeModal={this.closeModal} />}
-      </div>
-    );
-  }
-}
+      {modalOpen && <Modal bigImg={bigImg} closeModal={closeModal} />}
+    </div>
+  );
+};
 
 export { ImageGallery };
 

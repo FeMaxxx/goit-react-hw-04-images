@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { Formik } from "formik";
 import {
@@ -9,46 +9,42 @@ import {
   SearchIcon,
 } from "./Searchbar.styled";
 
-class Searchbar extends Component {
-  state = {
-    imagesSearch: "",
-  };
+const Searchbar = ({ onSubmitForm }) => {
+  const [imagesSearch, setImagesSearch] = useState("");
 
-  handleSubmit = () => {
-    if (this.state.imagesSearch === "") {
+  const handleSubmit = () => {
+    if (imagesSearch === "") {
       return;
     }
 
-    this.props.onSubmitForm(this.state.imagesSearch);
-    this.setState({ imagesSearch: "" });
+    onSubmitForm(imagesSearch);
+    setImagesSearch("");
   };
 
-  handleSearchImages = (e) => {
-    this.setState({ imagesSearch: e.target.value.trim().toLowerCase() });
+  const handleSearchImages = (e) => {
+    setImagesSearch(e.target.value.trim().toLowerCase());
   };
 
-  render() {
-    return (
-      <Header>
-        <Formik initialValues={{ image: "" }} onSubmit={this.handleSubmit}>
-          <SearchForm onChange={this.handleSearchImages}>
-            <Button type="submit">
-              <SearchIcon />
-            </Button>
+  return (
+    <Header>
+      <Formik initialValues={{ image: "" }} onSubmit={handleSubmit}>
+        <SearchForm onChange={handleSearchImages}>
+          <Button type="submit">
+            <SearchIcon />
+          </Button>
 
-            <Input
-              name="image"
-              type="text"
-              autoComplete="off"
-              autoFocus
-              placeholder="Search images and photos"
-            />
-          </SearchForm>
-        </Formik>
-      </Header>
-    );
-  }
-}
+          <Input
+            name="image"
+            type="text"
+            autoComplete="off"
+            autoFocus
+            placeholder="Search images and photos"
+          />
+        </SearchForm>
+      </Formik>
+    </Header>
+  );
+};
 
 export { Searchbar };
 

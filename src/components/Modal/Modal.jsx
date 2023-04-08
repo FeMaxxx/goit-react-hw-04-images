@@ -1,44 +1,39 @@
-import React, { Component } from "react";
+import React, { useEffect, useCallback } from "react";
 import { Overlay, Img } from "./Modal.styled";
 import PropTypes from "prop-types";
 
-class Modal extends Component {
-  componentDidMount() {
-    window.addEventListener("keydown", this.escCloseModal);
-  }
+const Modal = ({ bigImg, closeModal }) => {
+  const escCloseModal = useCallback(
+    (e) => {
+      if (e.code === "Escape") {
+        closeModal();
+      }
+    },
+    [closeModal]
+  );
 
-  componentWillUnmount() {
-    window.removeEventListener("keydown", this.escCloseModal);
-  }
+  useEffect(() => {
+    window.addEventListener("keydown", escCloseModal);
 
-  closeModal = (e) => {
-    const { closeModal } = this.props;
+    return () => {
+      window.removeEventListener("keydown", escCloseModal);
+    };
+  }, [escCloseModal]);
 
+  const handleCloseModal = (e) => {
     if (e.target.getAttribute("name") === "overvay") {
       closeModal();
     }
   };
 
-  escCloseModal = (e) => {
-    if (e.code === "Escape") {
-      const { closeModal } = this.props;
-
-      closeModal();
-    }
-  };
-
-  render() {
-    const { bigImg } = this.props;
-
-    return (
-      <Overlay name="overvay" onClick={this.closeModal}>
-        <div>
-          <Img src={bigImg} alt="BigImage" />
-        </div>
-      </Overlay>
-    );
-  }
-}
+  return (
+    <Overlay name="overvay" onClick={handleCloseModal}>
+      <div>
+        <Img src={bigImg} alt="BigImage" />
+      </div>
+    </Overlay>
+  );
+};
 
 export { Modal };
 

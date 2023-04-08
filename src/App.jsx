@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Searchbar } from "components/Searchbar";
 import { ImageGallery } from "components/ImageGallery";
 import { ToastContainer } from "react-toastify";
@@ -7,31 +7,15 @@ import { toast } from "react-toastify";
 import { searchImages } from "api";
 import { Button } from "components/Button";
 
-class App extends Component {
-  state = {
-    imagesSearch: "",
-    status: "idle",
-    images: [],
-    page: 1,
-    totalPages: 0,
-  };
+const App = () => {
+  const [imagesSearch, setImagesSearch] = useState("");
+  const [status, setStatus] = useState("idle");
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
 
-  componentDidUpdate(prevProps, prevState) {
-    const { imagesSearch } = this.state;
-    const { page } = this.state;
-
-    if (prevState.imagesSearch !== imagesSearch) {
-      this.setState({ page: 1, images: [] }, () => this.getImages());
-    } else if (prevState.page < page) {
-      this.getImages();
-    }
-  }
-
-  getImages() {
-    const { imagesSearch } = this.state;
-    const { page } = this.state;
-
-    this.setState({ status: "pending" });
+  const getImages = useCallback(() => {
+    setStatus("pending");
 
     searchImages(imagesSearch, page)
       .then((images) => {
@@ -39,59 +23,60 @@ class App extends Component {
 
         if (images.data.total === 0) {
           toast.error(`Images ${imagesSearch} Not Found`);
-          this.setState({
-            status: "rejected",
-            totalPages,
-          });
+
+          setStatus("rejected");
+          setTotalPages(totalPages);
         } else {
           if (page === 1) {
             toast.success(`We found ${images.data.totalHits} pictures`);
-            this.setState({
-              totalPages,
-            });
+
+            setTotalPages(totalPages);
           }
-          this.setState((prevState) => ({
-            images: [...prevState.images, ...images.data.hits],
-            status: "good",
-          }));
+
+          setImages((prevState) => [...prevState, ...images.data.hits]);
+          setStatus("good");
         }
       })
       .catch(() => {
         toast.error(`Images ${imagesSearch} Not Found`);
-        this.setState({
-          status: "rejected",
-        });
+
+        setStatus("rejected");
       });
+  }, [imagesSearch, page]);
+
+  useEffect(() => {
+    if (!imagesSearch) return;
+
+    if (page === 1) {
+      setImages([]);
+    }
+
+    getImages();
+  }, [getImages, imagesSearch, page]);
+
+  function handleFormSubmit(imagesSearch) {
+    setPage(1);
+    setImagesSearch(imagesSearch);
   }
 
-  handleFormSubmit = (imagesSearch) => {
-    this.setState({ imagesSearch });
+  const nextPage = () => {
+    setPage((prevState) => prevState + 1);
   };
 
-  nextPage = () => {
-    this.setState((prevState) => ({
-      page: prevState.page + 1,
-    }));
-  };
+  return (
+    <>
+      <Searchbar onSubmitForm={handleFormSubmit} />
+      <ImageGallery images={images} />
 
-  render() {
-    const { status, images, totalPages, page } = this.state;
+      {status === "pending" && <Loader />}
 
-    return (
-      <>
-        <Searchbar onSubmitForm={this.handleFormSubmit} />
-        <ImageGallery images={images} />
+      {status !== "pending" && totalPages >= page && page !== 0 && (
+        <Button onClick={nextPage} />
+      )}
 
-        {status === "pending" && <Loader />}
-
-        {status !== "pending" && totalPages >= page && page !== 0 && (
-          <Button onClick={this.nextPage} />
-        )}
-
-        <ToastContainer autoClose={3000} />
-      </>
-    );
-  }
-}
+      <ToastContainer autoClose={3000} />
+    </>
+  );
+};
 
 export { App };
